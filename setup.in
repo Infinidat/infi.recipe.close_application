@@ -28,10 +28,11 @@ SETUP_INFO = dict(
     include_package_data = True,
     zip_safe = False,
 
-    entry_points = dict(
-        console_scripts = ${project:console_scripts},
-        gui_scripts = ${project:gui_scripts},
-        ),
+    entry_points = {
+        'console_scripts': ${project:console_scripts},
+        'gui_scripts': ${project:gui_scripts},
+        'zc.buildout': ['default = ${project:name}:CloseApplication']
+        }
 )
 
 if SETUP_INFO['url'] is None:
