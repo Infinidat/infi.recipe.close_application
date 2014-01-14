@@ -34,8 +34,12 @@ def get_processes(bin_dirpath, ignore_list):
             if os.path.abspath(os.path.dirname(process.exe)) == bin_abspath:
                 processes.append(process)
             elif process.cmdline[:1] and os.path.abspath(os.path.dirname(process.cmdline[0])) == bin_abspath:
+                if process.getcwd() not in bin_abspath:  # when running bin/nosetests which runs an installer test
+                    continue
                 processes.append(process)
             elif process.cmdline[1:2] and os.path.abspath(os.path.dirname(process.cmdline[1])) == bin_abspath:
+                if process.getcwd() not in bin_abspath:   # when running bin/nosetests which runs an installer test
+                    continue
                 processes.append(process)
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
