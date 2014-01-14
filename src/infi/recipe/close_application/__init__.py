@@ -18,32 +18,39 @@ def is_in_bindir(pathname, getcwd, bin_abspath):
         return True
 
 
+def log_process(process):
+    logger.debug("found {!r}".format(process))
+    logger.debug("exe {!r}".format(process.exe))
+    logger.debug("cmdline {!r}".format(process.cmdline))
+    logger.debug("getcwd() {!r}".format(process.getcwd()))
+
+
+def need_to_kill_process(bin_abspath, ignore_list, process):
+    log_process(process)
+    if process.pid == os.getpid():
+        logger.debug("this is me")
+        return False
+    if os.name == "nt" and process.exe.endswith("buildout.exe"):
+        logger.debug("assuming is my child buildout, there's no getppid() on Windows")
+        return False
+    else:
+        for pathname in [[process.exe], process.cmdline[:1], process.cmdline[1:2]]:
+            if pathname and os.path.basename(pathname[0]).replace(EXTENSION, '') in ignore_list:
+                logger.debug("ignoring this one")
+                return False
+            if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspath):
+                return True
+    return False
+
+
 def get_processes(bin_dirpath, ignore_list):
     processes = []
     bin_abspath = os.path.abspath(bin_dirpath)
     logger.debug("looking for processes in {!r}".format(bin_abspath))
     for process in psutil.process_iter():
         try:
-            if process.pid == os.getpid():
-                logger.debug("this is me: {!r}".format(process))
-                continue
-            elif process.cmdline[:1] and os.path.basename(process.cmdline[0]).replace(EXTENSION, '') in ignore_list:
-                continue
-            elif process.cmdline[1:2] and os.path.basename(process.cmdline[1]).replace(EXTENSION, '') in ignore_list:
-                continue
-            logger.debug("found {!r}".format(process))
-            logger.debug("exe {!r}".format(process.exe))
-            logger.debug("cmdline {!r}".format(process.cmdline))
-            logger.debug("getcwd() {!r}".format(process.getcwd()))
-            if os.name == "nt" and process.exe.endswith("buildout.exe"):
-                logger.debug("assuming is my child buildout, there's no getppid() on Windows")
-                continue
-            if os.path.abspath(os.path.dirname(process.exe)) == bin_abspath:
+            if need_to_kill_process(bin_abspath, ignore_list, process):
                 processes.append(process)
-            else:
-                for pathname in [process.cmdline[:1], process.cmdline[1:2]]:
-                    if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspath):
-                        processes.append(process)
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             logger.debug("skipping {!r}".format(process))
     return processes
@@ -60,6 +67,8 @@ def kill_process(process):
 
 
 def close_application(bin_dirpath, ignore_list=()):
+    logger.debug("sys.executable: {!r}".format(sys.executable))
+    logger.debug("sys.argv: {!r}".format(sys.argv))
     for process in get_processes(bin_dirpath, ignore_list):
         kill_process(process)
     time.sleep(1)
