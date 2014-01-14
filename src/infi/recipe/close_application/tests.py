@@ -16,7 +16,7 @@ class CloseApplicationTestCase(TestCase):
         pid = self.start_python()
         time.sleep(1)
         self.assertFalse(pid.is_finished())
-        close_application()
+        close_application('bin')
         pid.poll()
         self.assertTrue(pid.is_finished())
 

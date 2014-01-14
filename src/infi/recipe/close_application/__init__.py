@@ -11,19 +11,10 @@ logger = logging.getLogger(__name__)
 EXTENSION = '.exe' if os.name == 'nt' else ''
 
 
-def get_bin_directory():
-    basename = 'buildout' + EXTENSION
-    possible_buildout_locations = [os.path.abspath(os.path.join(os.path.curdir, 'bin')),
-                                   os.path.abspath(os.path.dirname(sys.executable)),
-                                   os.path.abspath(os.path.dirname(sys.argv[0]))]
-    return [os.path.join(os.path.dirname(path), 'bin') for
-            path in possible_buildout_locations if
-            os.path.exists(os.path.join(path, basename))][0]
 
-
-def get_processes(ignore_list):
+def get_processes(bin_dirpath, ignore_list):
     processes = []
-    bin_abspath = get_bin_directory()
+    bin_abspath = os.path.abspath(bin_dirpath)
     logger.debug("looking for processes in {!r}".format(bin_abspath))
     for process in psutil.process_iter():
         try:
@@ -61,8 +52,8 @@ def kill_process(process):
         logger.exception("kill process failed")
 
 
-def close_application(ignore_list=()):
-    for process in get_processes(ignore_list):
+def close_application(bin_dirpath, ignore_list=()):
+    for process in get_processes(bin_dirpath, ignore_list):
         kill_process(process)
     time.sleep(1)
 
@@ -75,7 +66,9 @@ class CloseApplication(object):
         self.options = options
 
     def close_application(self):
-        close_application(self.options.get("ignore-list", '').split())
+        bin_dirpath = os.path.join(self.buildout.get("buildout").get("directory"), "bin")
+        ignore_list = self.options.get("ignore-list", '').split()
+        close_application(bin_dirpath, ignore_list)
         return []
 
     def update(self):
