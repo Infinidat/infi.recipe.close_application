@@ -99,3 +99,11 @@ class NeedToKillTestCase(TestCase):
         directory = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x"))
         process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
         self.assertFalse(need_to_kill_process(bindir, [], process))
+
+    def test_absolute_python_script_of_target_dir_from_project_root(self):
+        bindir = os.path.abspath(os.path.join(os.path.curdir, "x", "bin"))
+        python = os.path.abspath(os.path.join(os.path.curdir, "x", "parts", "python", "bin", "python"))
+        script = os.path.abspath(os.path.join(os.path.curdir, "x", "bin", "sleep"))
+        directory = os.path.abspath(os.path.curdir)
+        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        self.assertTrue(need_to_kill_process(bindir, [], process))
