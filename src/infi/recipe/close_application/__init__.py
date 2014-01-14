@@ -11,6 +11,12 @@ logger = logging.getLogger(__name__)
 EXTENSION = '.exe' if os.name == 'nt' else ''
 
 
+def is_in_bindir(pathname, getcwd, bin_abspath):
+    if os.path.isabs(pathname) and os.path.dirname(pathname) == bin_abspath:
+        return True
+    if not os.path.isabs(pathname) and os.path.join(getcwd, os.path.dirname(pathname)) == bin_abspath:
+        return True
+
 
 def get_processes(bin_dirpath, ignore_list):
     processes = []
@@ -28,21 +34,18 @@ def get_processes(bin_dirpath, ignore_list):
             logger.debug("found {!r}".format(process))
             logger.debug("exe {!r}".format(process.exe))
             logger.debug("cmdline {!r}".format(process.cmdline))
+            logger.debug("getcwd() {!r}".format(process.getcwd()))
             if os.name == "nt" and process.exe.endswith("buildout.exe"):
                 logger.debug("assuming is my child buildout, there's no getppid() on Windows")
                 continue
             if os.path.abspath(os.path.dirname(process.exe)) == bin_abspath:
                 processes.append(process)
-            elif process.cmdline[:1] and os.path.abspath(os.path.dirname(process.cmdline[0])) == bin_abspath:
-                if process.getcwd() not in bin_abspath:  # when running bin/nosetests which runs an installer test
-                    continue
-                processes.append(process)
-            elif process.cmdline[1:2] and os.path.abspath(os.path.dirname(process.cmdline[1])) == bin_abspath:
-                if process.getcwd() not in bin_abspath:   # when running bin/nosetests which runs an installer test
-                    continue
-                processes.append(process)
+            else:
+                for pathname in [process.cmdline[:1], process.cmdline[1:2]]:
+                    if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspath):
+                        processes.append(process)
         except (psutil.AccessDenied, psutil.NoSuchProcess):
-            pass
+            logger.debug("skipping {!r}".format(process))
     return processes
 
 
