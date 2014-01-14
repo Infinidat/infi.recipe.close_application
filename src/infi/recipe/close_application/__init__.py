@@ -28,6 +28,7 @@ def get_processes(ignore_list):
     for process in psutil.process_iter():
         try:
             if process.pid == os.getpid():
+                logger.debug("this is me: {!r}".format(process))
                 continue
             elif process.cmdline[:1] and os.path.basename(process.cmdline[0]).replace(EXTENSION, '') in ignore_list:
                 continue
@@ -36,6 +37,9 @@ def get_processes(ignore_list):
             logger.debug("found {!r}".format(process))
             logger.debug("exe {!r}".format(process.exe))
             logger.debug("cmdline {!r}".format(process.cmdline))
+            if os.name == "nt" and process.exe.endswith("buildout.exe"):
+                logger.debug("assuming is my child buildout, there's no getppid() on Windows")
+                continue
             if os.path.abspath(os.path.dirname(process.exe)) == bin_abspath:
                 processes.append(process)
             elif process.cmdline[:1] and os.path.abspath(os.path.dirname(process.cmdline[0])) == bin_abspath:
