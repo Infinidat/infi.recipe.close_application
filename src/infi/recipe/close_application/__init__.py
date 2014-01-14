@@ -8,11 +8,11 @@ import psutil
 import logging
 
 logger = logging.getLogger(__name__)
+EXTENSION = '.exe' if os.name == 'nt' else ''
 
 
 def get_bin_directory():
-    extension = '.exe' if os.name == 'nt' else ''
-    basename = 'buildout' + extension
+    basename = 'buildout' + EXTENSION
     possible_buildout_locations = [os.path.abspath(os.path.join(os.path.curdir, 'bin')),
                                    os.path.abspath(os.path.dirname(sys.executable)),
                                    os.path.abspath(os.path.dirname(sys.argv[0]))]
@@ -21,13 +21,17 @@ def get_bin_directory():
             os.path.exists(os.path.join(path, basename))][0]
 
 
-def get_processes():
+def get_processes(ignore_list):
     processes = []
     bin_abspath = get_bin_directory()
     logger.debug("looking for processes in {!r}".format(bin_abspath))
     for process in psutil.process_iter():
         try:
             if process.pid == os.getpid():
+                continue
+            elif process.cmdline[:1] and os.path.basename(process.cmdline[0]).replace(EXTENSION, '') in ignore_list:
+                continue
+            elif process.cmdline[1:2] and os.path.basename(process.cmdline[1]).replace(EXTENSION, '') in ignore_list:
                 continue
             logger.debug("found {!r}".format(process))
             logger.debug("exe {!r}".format(process.exe))
@@ -53,24 +57,26 @@ def kill_process(process):
         logger.exception("kill process failed")
 
 
-def close_application():
-    for process in get_processes():
+def close_application(ignore_list=()):
+    for process in get_processes(ignore_list):
         kill_process(process)
     time.sleep(1)
 
 
 class CloseApplication(object):
     def __init__(self, buildout, name, options):
-        super(BuildoutLogging, self).__init__()
+        super(CloseApplication, self).__init__()
         self.buildout = buildout
         self.name = name
         self.options = options
 
-    def update(self):
-        close_application()
+    def close_application(self):
+        close_application(self.options.get("ignore-list", '').split())
         return []
 
+    def update(self):
+        return self.close_application()
+
     def install(self):
-        close_application()
-        return []
+        return self.close_application()
 
