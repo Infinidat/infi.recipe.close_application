@@ -56,3 +56,4 @@ src/infi/recipe/close_application/__version__.py
 bootstrap.py
 .cache
 eggs
+parts
