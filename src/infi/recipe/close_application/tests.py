@@ -1,7 +1,7 @@
 from infi.unittest import TestCase
 from infi.execute import execute_async, execute_assert_success
 from . import close_application, EXTENSION, need_to_kill_process
-from chunk import Chunk
+from munch import Munch
 import os
 import time
 
@@ -36,7 +36,7 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "parts", "python", "bin", "python"))
         script = os.path.abspath(os.path.join(os.path.curdir, "bin", "nosetests"))
         directory = os.path.dirname(os.path.abspath(os.path.curdir))
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertTrue(need_to_kill_process(bindir, [], process))
 
     def test_absloute_python_script_running_from_root_directory(self):
@@ -44,7 +44,7 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "parts", "python", "bin", "python"))
         script = os.path.abspath(os.path.join(os.path.curdir, "bin", "nosetests"))
         directory = os.path.abspath(os.path.curdir)
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertTrue(need_to_kill_process(bindir, [], process))
 
     def test_relative_python_script_from_root_directory(self):
@@ -52,7 +52,7 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "parts", "python", "bin", "python"))
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.curdir)
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertTrue(need_to_kill_process(bindir, [], process))
 
     def test_relative_python_script_from_other_directory(self):
@@ -61,12 +61,12 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "parts", "python", "bin", "python"))
         script = os.path.join(os.path.basename(curdir), "bin", "nosetests")
         directory = os.path.dirname(curdir)
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertTrue(need_to_kill_process(bindir, [], process))
 
     def test_myself(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
-        process = Chunk(pid=os.getpid(), exe='', cmdline=[], getcwd=lambda: '')
+        process = Munch(pid=os.getpid(), exe=lambda: '', cmdline=lambda: [], getcwd=lambda: '')
         self.assertFalse(need_to_kill_process(bindir, [], process))
 
     def test_ignore_list(self):
@@ -74,14 +74,14 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "parts", "python", "bin", "python"))
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.curdir)
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertFalse(need_to_kill_process(bindir, ["nosetests"], process))
         self.assertFalse(need_to_kill_process(bindir, ["python"], process))
 
     def test_non_related_process(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
         directory = os.path.abspath(os.path.curdir)
-        process = Chunk(pid=1, exe="some-process", cmdline=[], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: "some-process", cmdline=lambda: [], getcwd=lambda: directory)
         self.assertFalse(need_to_kill_process(bindir, [], process))
 
     def test_absolute_buildout_from_other_package(self):
@@ -89,7 +89,7 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", "parts", "python", "bin", "python"))
         script = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", "bin", "nosetests"))
         directory = os.path.dirname(os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", )))
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertFalse(need_to_kill_process(bindir, [], process))
 
     def test_relative_buildout_from_other_package(self):
@@ -97,7 +97,7 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", "parts", "python", "bin", "python"))
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x"))
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertFalse(need_to_kill_process(bindir, [], process))
 
     def test_absolute_python_script_of_target_dir_from_project_root(self):
@@ -105,5 +105,5 @@ class NeedToKillTestCase(TestCase):
         python = os.path.abspath(os.path.join(os.path.curdir, "x", "parts", "python", "bin", "python"))
         script = os.path.abspath(os.path.join(os.path.curdir, "x", "bin", "sleep"))
         directory = os.path.abspath(os.path.curdir)
-        process = Chunk(pid=1, exe=python, cmdline=[python, script], getcwd=lambda: directory)
+        process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
         self.assertTrue(need_to_kill_process(bindir, [], process))
