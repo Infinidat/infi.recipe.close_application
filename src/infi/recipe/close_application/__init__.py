@@ -20,8 +20,8 @@ def is_in_bindir(pathname, getcwd, bin_abspath):
 
 def log_process(process):
     logger.debug("found {!r}".format(process))
-    logger.debug("exe {!r}".format(process.exe))
-    logger.debug("cmdline {!r}".format(process.cmdline))
+    logger.debug("exe {!r}".format(process.exe()))
+    logger.debug("cmdline {!r}".format(process.cmdline()))
     logger.debug("getcwd() {!r}".format(process.getcwd()))
 
 
@@ -30,11 +30,11 @@ def need_to_kill_process(bin_abspath, ignore_list, process):
     if process.pid == os.getpid():
         logger.debug("this is me")
         return False
-    if os.name == "nt" and process.exe.endswith("buildout.exe"):
+    if os.name == "nt" and process.exe().endswith("buildout.exe"):
         logger.debug("assuming is my child buildout, there's no getppid() on Windows")
         return False
     else:
-        for pathname in [[process.exe], process.cmdline[:1], process.cmdline[1:2]]:
+        for pathname in [[process.exe()], process.cmdline()[:1], process.cmdline()[1:2]]:
             if pathname and os.path.basename(pathname[0]).replace(EXTENSION, '') in ignore_list:
                 logger.debug("ignoring this one")
                 return False
