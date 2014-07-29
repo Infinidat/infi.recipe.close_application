@@ -30,6 +30,9 @@ def need_to_kill_process(bin_abspaths, ignore_list, process):
     if process.pid == os.getpid():
         logger.debug("this is me")
         return False
+    if os.name != "nt" and process.pid == os.getppid():
+        logger.debug("this is my father")
+        return False
     if os.name == "nt" and process.exe().endswith("buildout.exe"):
         logger.debug("assuming is my child buildout, there's no getppid() on Windows")
         return False

@@ -17,7 +17,7 @@ class CloseApplicationTestCase(TestCase):
         pid = self.start_python()
         time.sleep(1)
         self.assertFalse(pid.is_finished())
-        close_application('bin')
+        close_application(['bin'])
         pid.poll()
         self.assertTrue(pid.is_finished())
 
@@ -82,7 +82,7 @@ class NeedToKillTestCase(TestCase):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
         directory = os.path.abspath(os.path.curdir)
         process = Munch(pid=1, exe=lambda: "some-process", cmdline=lambda: [], getcwd=lambda: directory)
-        self.assertFalse(need_to_kill_process(bindir, [], process))
+        self.assertFalse(need_to_kill_process([bindir], [], process))
 
     def test_absolute_buildout_from_other_package(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
