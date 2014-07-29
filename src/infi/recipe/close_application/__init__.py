@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 EXTENSION = '.exe' if os.name == 'nt' else ''
 
 
-def is_in_bindir(pathname, getcwd, bin_abspath):
-    if os.path.isabs(pathname) and os.path.dirname(pathname) == bin_abspath:
+def is_in_bindir(pathname, getcwd, bin_abspaths):
+    if os.path.isabs(pathname) and os.path.dirname(pathname) in bin_abspaths:
         return True
-    if not os.path.isabs(pathname) and os.path.join(getcwd, os.path.dirname(pathname)) == bin_abspath:
+    if not os.path.isabs(pathname) and os.path.join(getcwd, os.path.dirname(pathname)) in bin_abspaths:
         return True
 
 
@@ -25,7 +25,7 @@ def log_process(process):
     logger.debug("getcwd() {!r}".format(process.getcwd()))
 
 
-def need_to_kill_process(bin_abspath, ignore_list, process):
+def need_to_kill_process(bin_abspaths, ignore_list, process):
     log_process(process)
     if process.pid == os.getpid():
         logger.debug("this is me")
@@ -38,22 +38,20 @@ def need_to_kill_process(bin_abspath, ignore_list, process):
             if pathname and os.path.basename(pathname[0]).replace(EXTENSION, '') in ignore_list:
                 logger.debug("ignoring this one")
                 return False
-            if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspath):
+            if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspaths):
                 return True
     return False
 
 
-def get_processes(bin_dirpath, ignore_list):
-    processes = []
-    bin_abspath = os.path.abspath(bin_dirpath)
-    logger.debug("looking for processes in {!r}".format(bin_abspath))
+def get_processes(bin_dirpaths, ignore_list):
+    bin_abspaths = [os.path.abspath(bin_dirpath) for bin_dirpath in bin_dirpaths]
+    logger.debug("looking for processes in {!r}".format(bin_abspaths))
     for process in psutil.process_iter():
         try:
-            if need_to_kill_process(bin_abspath, ignore_list, process):
-                processes.append(process)
+            if need_to_kill_process(bin_abspaths, ignore_list, process):
+                yield process
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             logger.debug("skipping {!r}".format(process))
-    return processes
 
 
 def kill_process(process):
@@ -66,10 +64,10 @@ def kill_process(process):
         logger.exception("kill process failed")
 
 
-def close_application(bin_dirpath, ignore_list=()):
+def close_application(bin_dirpaths, ignore_list=()):
     logger.debug("sys.executable: {!r}".format(sys.executable))
     logger.debug("sys.argv: {!r}".format(sys.argv))
-    for process in get_processes(bin_dirpath, ignore_list):
+    for process in get_processes(bin_dirpaths, ignore_list):
         kill_process(process)
     time.sleep(1)
 
@@ -83,8 +81,9 @@ class CloseApplication(object):
 
     def close_application(self):
         bin_dirpath = os.path.join(self.buildout.get("buildout").get("directory"), "bin")
+        parts_bin_dirpath = os.path.join(self.buildout.get("buildout").get("directory"), "parts", "python", "bin")
         ignore_list = self.options.get("ignore-list", '').split()
-        close_application(bin_dirpath, ignore_list)
+        close_application([bin_dirpath, parts_bin_dirpath], ignore_list)
         return []
 
     def update(self):
