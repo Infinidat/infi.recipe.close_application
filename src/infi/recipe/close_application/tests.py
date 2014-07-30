@@ -37,7 +37,7 @@ class NeedToKillTestCase(TestCase):
         script = os.path.abspath(os.path.join(os.path.curdir, "bin", "nosetests"))
         directory = os.path.dirname(os.path.abspath(os.path.curdir))
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertTrue(need_to_kill_process(bindir, [], process))
+        self.assertTrue(need_to_kill_process([bindir], [], process))
 
     def test_absloute_python_script_running_from_root_directory(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
@@ -45,7 +45,7 @@ class NeedToKillTestCase(TestCase):
         script = os.path.abspath(os.path.join(os.path.curdir, "bin", "nosetests"))
         directory = os.path.abspath(os.path.curdir)
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertTrue(need_to_kill_process(bindir, [], process))
+        self.assertTrue(need_to_kill_process([bindir], [], process))
 
     def test_relative_python_script_from_root_directory(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
@@ -53,7 +53,7 @@ class NeedToKillTestCase(TestCase):
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.curdir)
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertTrue(need_to_kill_process(bindir, [], process))
+        self.assertTrue(need_to_kill_process([bindir], [], process))
 
     def test_relative_python_script_from_other_directory(self):
         curdir = os.path.abspath(os.path.curdir)
@@ -62,12 +62,12 @@ class NeedToKillTestCase(TestCase):
         script = os.path.join(os.path.basename(curdir), "bin", "nosetests")
         directory = os.path.dirname(curdir)
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertTrue(need_to_kill_process(bindir, [], process))
+        self.assertTrue(need_to_kill_process([bindir], [], process))
 
     def test_myself(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
         process = Munch(pid=os.getpid(), exe=lambda: '', cmdline=lambda: [], getcwd=lambda: '')
-        self.assertFalse(need_to_kill_process(bindir, [], process))
+        self.assertFalse(need_to_kill_process([bindir], [], process))
 
     def test_ignore_list(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
@@ -75,8 +75,8 @@ class NeedToKillTestCase(TestCase):
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.curdir)
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertFalse(need_to_kill_process(bindir, ["nosetests"], process))
-        self.assertFalse(need_to_kill_process(bindir, ["python"], process))
+        self.assertFalse(need_to_kill_process([bindir], ["nosetests"], process))
+        self.assertFalse(need_to_kill_process([bindir], ["python"], process))
 
     def test_non_related_process(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
@@ -90,7 +90,7 @@ class NeedToKillTestCase(TestCase):
         script = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", "bin", "nosetests"))
         directory = os.path.dirname(os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x", )))
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertFalse(need_to_kill_process(bindir, [], process))
+        self.assertFalse(need_to_kill_process([bindir], [], process))
 
     def test_relative_buildout_from_other_package(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "bin"))
@@ -98,7 +98,7 @@ class NeedToKillTestCase(TestCase):
         script = os.path.join("bin", "nosetests")
         directory = os.path.abspath(os.path.join(os.path.curdir, os.path.pardir, "x"))
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertFalse(need_to_kill_process(bindir, [], process))
+        self.assertFalse(need_to_kill_process([bindir], [], process))
 
     def test_absolute_python_script_of_target_dir_from_project_root(self):
         bindir = os.path.abspath(os.path.join(os.path.curdir, "x", "bin"))
@@ -106,4 +106,4 @@ class NeedToKillTestCase(TestCase):
         script = os.path.abspath(os.path.join(os.path.curdir, "x", "bin", "sleep"))
         directory = os.path.abspath(os.path.curdir)
         process = Munch(pid=1, exe=lambda: python, cmdline=lambda: [python, script], getcwd=lambda: directory)
-        self.assertTrue(need_to_kill_process(bindir, [], process))
+        self.assertTrue(need_to_kill_process([bindir], [], process))
