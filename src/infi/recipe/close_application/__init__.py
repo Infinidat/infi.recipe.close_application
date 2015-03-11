@@ -22,7 +22,7 @@ def log_process(process):
     logger.debug("found {!r}".format(process))
     logger.debug("exe {!r}".format(process.exe()))
     logger.debug("cmdline {!r}".format(process.cmdline()))
-    logger.debug("getcwd() {!r}".format(process.getcwd()))
+    logger.debug("cwd() {!r}".format(process.cwd()))
 
 
 def need_to_kill_process(bin_abspaths, ignore_list, process):
