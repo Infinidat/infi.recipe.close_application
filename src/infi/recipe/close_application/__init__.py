@@ -41,7 +41,7 @@ def need_to_kill_process(bin_abspaths, ignore_list, process):
             if pathname and os.path.basename(pathname[0]).replace(EXTENSION, '') in ignore_list:
                 logger.debug("ignoring this one")
                 return False
-            if pathname and is_in_bindir(pathname[0], process.cwd(), bin_abspaths):
+            if pathname and process.cwd() and is_in_bindir(pathname[0], process.cwd(), bin_abspaths):
                 return True
     return False
 
