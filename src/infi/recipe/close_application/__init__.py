@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 EXTENSION = '.exe' if os.name == 'nt' else ''
 
 
-def is_in_bindir(pathname, getcwd, bin_abspaths):
+def is_in_bindir(pathname, cwd, bin_abspaths):
     if os.path.isabs(pathname) and os.path.dirname(pathname) in bin_abspaths:
         return True
-    if not os.path.isabs(pathname) and os.path.join(getcwd, os.path.dirname(pathname)) in bin_abspaths:
+    if not os.path.isabs(pathname) and os.path.join(cwd, os.path.dirname(pathname)) in bin_abspaths:
         return True
 
 
@@ -22,7 +22,7 @@ def log_process(process):
     logger.debug("found {!r}".format(process))
     logger.debug("exe {!r}".format(process.exe()))
     logger.debug("cmdline {!r}".format(process.cmdline()))
-    logger.debug("getcwd() {!r}".format(process.getcwd()))
+    logger.debug("cwd() {!r}".format(process.cwd()))
 
 
 def need_to_kill_process(bin_abspaths, ignore_list, process):
@@ -41,7 +41,7 @@ def need_to_kill_process(bin_abspaths, ignore_list, process):
             if pathname and os.path.basename(pathname[0]).replace(EXTENSION, '') in ignore_list:
                 logger.debug("ignoring this one")
                 return False
-            if pathname and is_in_bindir(pathname[0], process.getcwd(), bin_abspaths):
+            if pathname and process.cwd() and is_in_bindir(pathname[0], process.cwd(), bin_abspaths):
                 return True
     return False
 
