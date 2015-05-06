@@ -46,7 +46,7 @@ def need_to_kill_process(bin_abspaths, ignore_list, process):
     return False
 
 
-def get_processes(bin_dirpaths, ignore_list):
+def get_processes_to_kill(bin_dirpaths, ignore_list):
     bin_abspaths = [os.path.abspath(bin_dirpath) for bin_dirpath in bin_dirpaths]
     logger.debug("looking for processes in {!r}".format(bin_abspaths))
     for process in psutil.process_iter():
@@ -70,7 +70,7 @@ def kill_process(process):
 def close_application(bin_dirpaths, ignore_list=()):
     logger.debug("sys.executable: {!r}".format(sys.executable))
     logger.debug("sys.argv: {!r}".format(sys.argv))
-    for process in get_processes(bin_dirpaths, ignore_list):
+    for process in get_processes_to_kill(bin_dirpaths, ignore_list):
         kill_process(process)
     time.sleep(1)
 
