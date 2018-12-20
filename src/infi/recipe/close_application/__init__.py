@@ -3,7 +3,6 @@ __import__("pkg_resources").declare_namespace(__name__)
 import os
 import sys
 import time
-import signal
 import psutil
 import logging
 
